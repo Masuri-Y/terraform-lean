@@ -1,0 +1,5 @@
+# local .terraform dir
+.terraform/*
+
+# tf variable files, my include sensitive data
+*.tfvars
