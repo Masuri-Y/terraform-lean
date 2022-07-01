@@ -1,7 +1,5 @@
 # Configure the Alicloud Provider
 provider "alicloud" {
-  # access_key="LTAI5tA9X6iQSYae9HtWKWsb"
-  # secret_key="g2Z2AxdSgRVty0pWKvidXCM869CsRK"
   # region    = "cn-shanghai"
 }
 
@@ -12,40 +10,65 @@ provider "alicloud" {
 # }
 
 
-variable "cidr_block" {
-  description = "cidr block for vpc and subnet"
-  type = list(object({
-    cidr_block = string
-    name = string
-  }))
-}
+# variable "cidr_block" {
+#   description = "cidr block for vpc and subnet"
+#   type = list(object({
+#     cidr_block = string
+#     name = string
+#   }))
+# }
+
+variable "vpc_cidr_block" {}
+variable "subnet_cidr_block" {}
+variable "avail_zone" {}
+variable "env_prefix" {}
 
 
 # Create vpc
-variable "env" {
-  description = "deploy env"
-}
-
-resource "alicloud_vpc" "dev-vpc" {
-  vpc_name   = var.cidr_block[0].name
-  cidr_block = var.cidr_block[0].cidr_block
+resource "alicloud_vpc" "myapp-vpc" {
+  vpc_name   = "${var.env_prefix}-vpc"
+  cidr_block = var.vpc_cidr_block
   tags = {
-      Name: var.env
+      Name: "${var.env_prefix}-vpc"
   }
 }
 
-variable "zone_id" {}
+# Create Subnet
+
+resource "alicloud_vswitch" "myapp-vsw-1" {
+  vpc_id     = alicloud_vpc.myapp-vpc.id
+  cidr_block = var.subnet_cidr_block
+  zone_id    = var.avail_zone
+  tags = {
+      Name: "${var.env_prefix}-vsw-1"
+  }
+}
+
+
+# variable "env" {
+#   description = "deploy env"
+# }
+
+# resource "alicloud_vpc" "dev-vpc" {
+#   vpc_name   = var.cidr_block[0].name
+#   cidr_block = var.cidr_block[0].cidr_block
+#   tags = {
+#       Name: var.env
+#   }
+# }
+
+# variable "zone_id" {}
 
 # Create Vswitch
-resource "alicloud_vswitch" "dev-vsw-1" {
-  vpc_id     = alicloud_vpc.dev-vpc.id
-  cidr_block = var.cidr_block[1].cidr_block
-  zone_id    = var.zone_id
-  vswitch_name = var.cidr_block[1].name
-  tags = {
-      Name: var.cidr_block[1].name
-  }
-}
+# resource "alicloud_vswitch" "dev-vsw-1" {
+#   vpc_id     = alicloud_vpc.dev-vpc.id
+#   cidr_block = var.cidr_block[1].cidr_block
+#   zone_id    = var.zone_id
+#   vswitch_name = var.cidr_block[1].name
+#   tags = {
+#       Name: var.cidr_block[1].name
+#   }
+# }
 
 # data "alicloud_vpcs" "existing_vpcs" {
 #   cidr_block = "172.16.0.0/16"
